@@ -3,6 +3,7 @@ import customtkinter
 import win32gui
 from pynput import keyboard, mouse
 from PIL import ImageGrab
+import os
 
 from typing import List, Dict
 
@@ -60,9 +61,15 @@ class WindowCapture:
     def __init__(self, hwnd) -> None:
         self.hwnd = hwnd
         self.index = 0
+        self.directory_check()
 
     def initialize(self):
         self.index = 0
+        self.directory_check()
+
+    def directory_check(self):
+        if not os.path.isdir("./images"):
+            os.makedirs("./images")
 
     def capture(self):
         foreground_window_hwnd = win32gui.GetForegroundWindow()
@@ -82,7 +89,7 @@ class KeyboardHooker:
     
     def stop_hooking(self):
         self.listener.stop()
-        
+
     def on_press(self, _):
         if self.is_press_enable:
             self.is_press_enable = False
@@ -113,6 +120,7 @@ class RecordComponent:
         # go here
         self.is_record = not self.is_record
         if self.is_record:
+            self.window_capture.initialize()
             if self.option_component.check_track_keyboard_var:
                 self.keyboard_hooker.start_hooking()
 
@@ -123,6 +131,17 @@ class RecordComponent:
                 pass
             # mouse hooker will be added here
 
+class ConvertComponent:
+    def __init__(self, app) -> None:
+        self.button = customtkinter.CTkButton(app, text="Convert", command=self._command_button)
+        self.place()
+
+    def place(self):
+        self.button.grid(row=4, column=0, padx=20, pady=10, sticky='ew', columnspan=2)
+
+    def _command_button(self):
+        os.system('ffmpeg -r 60 -i "./images/%d.jpg" -vcodec mpeg4 -s 1920x1080 -b 9000k -y output.mp4')
+
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
@@ -132,7 +151,8 @@ class App(customtkinter.CTk):
 
         # Widgets go
         self.option_component = OptionsComponent(self)
-        self.button_component = RecordComponent(self, self.option_component)
+        self.record_component = RecordComponent(self, self.option_component)
+        self.convert_component = ConvertComponent(self)
 
 app = App()
 app.mainloop()
