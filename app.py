@@ -110,7 +110,7 @@ class RecordComponent:
         self.keyboard_hooker = KeyboardHooker(self.window_capture)
         # mouse hooker will be added here
 
-        self.button = customtkinter.CTkButton(app, text="Record", command=self._command_button)
+        self.button = customtkinter.CTkButton(app, text="Record", command=self._command_button, fg_color="#00fa4f")
         self.place()
 
     def place(self):
@@ -120,11 +120,13 @@ class RecordComponent:
         # go here
         self.is_record = not self.is_record
         if self.is_record:
+            self.button.configure(fg_color="#fa0047")
             self.window_capture.initialize()
             if self.option_component.check_track_keyboard_var:
                 self.keyboard_hooker.start_hooking()
 
         else:
+            self.button.configure(fg_color="#00fa4f")
             try:
                 self.keyboard_hooker.stop_hooking()
             finally:
