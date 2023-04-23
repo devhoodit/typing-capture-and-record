@@ -10,3 +10,6 @@ Install and excute
 First combobox for tracking window
 Second combobox for capture region
 Checkboxes are which event you want to hooking
+
+## Pre-requirements
+FFMPEG
