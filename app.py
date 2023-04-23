@@ -2,6 +2,7 @@ import tkinter
 import customtkinter
 import win32gui
 from pynput import keyboard, mouse
+from PIL import ImageGrab
 
 from typing import List, Dict
 
@@ -53,13 +54,42 @@ class OptionsComponent:
         win32gui.EnumWindows(win_enum_handler, hwnd_dict)
         return hwnd_dict
     
-class Capture:
-    def __init__(self) -> None:
-        pass
+class WindowCapture:
+    def __init__(self, hwnd) -> None:
+        self.hwnd = hwnd
+        self.index = 0
+
+    def capture(self):
+        foreground_window_hwnd = win32gui.GetForegroundWindow()
+        if foreground_window_hwnd == self.hwnd or -1 == self.hwnd:
+            image = ImageGrab.grab()
+            image.save(f"./images/{self.index}.jpg", format='JPEG', subsampling=0, quality=100)
+            self.index += 1
+
+class KeyboardHooker:
+    def __init__(self, cap: WindowCapture) -> None:
+        self.cap = cap
+        self.is_press_enable = True
+
+    def on_press(self, _):
+        if self.is_press_enable:
+            self.is_press_enable = False
+            self.cap.capture()
+
+    def on_release(self, _):
+        self.is_press_enable = True
 
 class RecordComponent:
     def __init__(self, app, options: OptionsComponent) -> None:
+        self.is_record = False
+
+        self.button = customtkinter.CTkButton(app, text="Record", command=self._command_button)
+
+    def place(self):
         pass
+
+    def _command_button(self):
+        self.is_record = not self.is_record
 
 class App(customtkinter.CTk):
     def __init__(self):
