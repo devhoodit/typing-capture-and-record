@@ -63,8 +63,9 @@ class WindowCapture:
         self.index = 0
         self.directory_check()
 
-    def initialize(self):
+    def initialize(self, hwnd):
         self.index = 0
+        self.hwnd = hwnd
         self.directory_check()
 
     def directory_check(self):
@@ -121,7 +122,7 @@ class RecordComponent:
         self.is_record = not self.is_record
         if self.is_record:
             self.button.configure(fg_color="#fa0047")
-            self.window_capture.initialize()
+            self.window_capture.initialize(self.option_component.selected_focus_hwnd)
             if self.option_component.check_track_keyboard_var:
                 self.keyboard_hooker.start_hooking()
 
