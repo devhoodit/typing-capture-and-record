@@ -10,15 +10,16 @@ from typing import List, Dict
 class OptionsComponent:
     def __init__(self, app: customtkinter.CTk) -> None:
 
-        task_dict = self.load_windows()
+        self.task_dict = self.load_windows()
         capture_region = ["screen"]
 
         self.selected_focus = "default"
+        self.selected_focus_hwnd = -1
         self.selected_capture_region = "screen"
         self.selected_track_mouse = False
         self.selected_track_keyboard = False
 
-        self.box_focus = customtkinter.CTkComboBox(app, values=list(task_dict.keys()), command=self._command_focus)
+        self.box_focus = customtkinter.CTkComboBox(app, values=list(self.task_dict.keys()), command=self._command_focus)
         self.box_capture_region = customtkinter.CTkComboBox(app, values=capture_region)
 
         self.check_track_mouse_var = customtkinter.StringVar(value=False)
@@ -37,6 +38,7 @@ class OptionsComponent:
 
     def _command_focus(self, choice):
         self.selected_focus = choice
+        self.selected_focus_hwnd = self.task_dict[choice]
 
     def _command_track_mouse(self):
         self.selected_track_mouse = self.check_track_mouse_var.get()
@@ -59,6 +61,9 @@ class WindowCapture:
         self.hwnd = hwnd
         self.index = 0
 
+    def initialize(self):
+        self.index = 0
+
     def capture(self):
         foreground_window_hwnd = win32gui.GetForegroundWindow()
         if foreground_window_hwnd == self.hwnd or -1 == self.hwnd:
@@ -70,7 +75,14 @@ class KeyboardHooker:
     def __init__(self, cap: WindowCapture) -> None:
         self.cap = cap
         self.is_press_enable = True
+        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
 
+    def start_hooking(self):
+        self.listener.start()
+    
+    def stop_hooking(self):
+        self.listener.stop()
+        
     def on_press(self, _):
         if self.is_press_enable:
             self.is_press_enable = False
@@ -82,14 +94,34 @@ class KeyboardHooker:
 class RecordComponent:
     def __init__(self, app, options: OptionsComponent) -> None:
         self.is_record = False
+        self.option_component = options
+
+        # capture
+        self.window_capture = WindowCapture(self.option_component.selected_focus_hwnd)
+
+        # hooking
+        self.keyboard_hooker = KeyboardHooker(self.window_capture)
+        # mouse hooker will be added here
 
         self.button = customtkinter.CTkButton(app, text="Record", command=self._command_button)
+        self.place()
 
     def place(self):
-        pass
+        self.button.grid(row=3, column=0, padx=20, pady=10, sticky='ew', columnspan=2)
 
     def _command_button(self):
+        # go here
         self.is_record = not self.is_record
+        if self.is_record:
+            if self.option_component.check_track_keyboard_var:
+                self.keyboard_hooker.start_hooking()
+
+        else:
+            try:
+                self.keyboard_hooker.stop_hooking()
+            finally:
+                pass
+            # mouse hooker will be added here
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -100,6 +132,7 @@ class App(customtkinter.CTk):
 
         # Widgets go
         self.option_component = OptionsComponent(self)
+        self.button_component = RecordComponent(self, self.option_component)
 
 app = App()
 app.mainloop()
