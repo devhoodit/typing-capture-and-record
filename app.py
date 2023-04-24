@@ -99,6 +99,22 @@ class KeyboardHooker:
     def on_release(self, _):
         self.is_press_enable = True
 
+class MouseHooker:
+    def __init__(self, cap: WindowCapture) -> None:
+        self.cap = cap
+        self.is_click_enable = True
+        self.listener = mouse.Listener(on_click=self.on_click)
+
+    def start_hooking(self):
+        self.listener.start()
+
+    def stop_hooking(self):
+        self.listener.stop()
+
+    def on_click(self, _, __, ___, pressed):
+        if pressed:
+            self.cap.capture()
+
 class RecordComponent:
     def __init__(self, app, options: OptionsComponent) -> None:
         self.is_record = False
