@@ -14,8 +14,12 @@ Checkboxes are which event you want to hooking
 ## Pre-requirements
 FFMPEG
 
+## Feature
+- Hooking Keyboard
+- Hooking Mouse
+- Conditional Hooking
+
 ## Todo
-- Hooking mouse
 - Caputre specific region
 - FFMPEG Progress bar
 - UI Frame (better ui)
