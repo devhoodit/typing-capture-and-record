@@ -176,7 +176,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.geometry("400x280")
-        self.title("Capture & Record v0.0.1")
+        self.title("Capture & Record v0.0.2")
         self.grid_columnconfigure((0), weight=1)
 
         # Widgets go
