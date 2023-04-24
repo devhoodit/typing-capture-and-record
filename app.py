@@ -24,7 +24,7 @@ class OptionsComponent:
         self.box_capture_region = customtkinter.CTkComboBox(app, values=capture_region)
 
         self.check_track_mouse_var = customtkinter.StringVar(value=False)
-        self.check_track_keyboard_var = customtkinter.StringVar(value=True)
+        self.check_track_keyboard_var = customtkinter.StringVar(value=False)
 
         self.check_track_mouse_box = customtkinter.CTkCheckBox(app, text="Keyboard", command=self._command_track_mouse, variable=self.check_track_mouse_var, onvalue=True, offvalue=False)
         self.check_track_keyboard_box = customtkinter.CTkCheckBox(app, text="Mouse", command=self._command_track_keyboard, variable=self.check_track_keyboard_var, onvalue=True, offvalue=False)
@@ -86,7 +86,10 @@ class KeyboardHooker:
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
 
     def start_hooking(self):
-        self.listener.start()
+        if not self.listener._thread.is_alive():
+            self.listener.join()
+        else:
+            self.listener.start()
     
     def stop_hooking(self):
         self.listener.stop()
@@ -106,7 +109,10 @@ class MouseHooker:
         self.listener = mouse.Listener(on_click=self.on_click)
 
     def start_hooking(self):
-        self.listener.start()
+        if not self.listener._thread.is_alive():
+            self.listener.join()
+        else:
+            self.listener.start()
 
     def stop_hooking(self):
         self.listener.stop()
@@ -125,7 +131,7 @@ class RecordComponent:
 
         # hooking
         self.keyboard_hooker = KeyboardHooker(self.window_capture)
-        # mouse hooker will be added here
+        self.mouse_hooker = MouseHooker(self.window_capture)
 
         self.button = customtkinter.CTkButton(app, text="Record", command=self._command_button, fg_color="#00fa4f")
         self.place()
@@ -141,6 +147,8 @@ class RecordComponent:
             self.window_capture.initialize(self.option_component.selected_focus_hwnd)
             if self.option_component.check_track_keyboard_var:
                 self.keyboard_hooker.start_hooking()
+            if self.option_component.check_track_mouse_var:
+                self.mouse_hooker.start_hooking()
 
         else:
             self.button.configure(fg_color="#00fa4f")
@@ -148,7 +156,10 @@ class RecordComponent:
                 self.keyboard_hooker.stop_hooking()
             finally:
                 pass
-            # mouse hooker will be added here
+            try:
+                self.mouse_hooker.stop_hooking()
+            finally:
+                pass
 
 class ConvertComponent:
     def __init__(self, app) -> None:
