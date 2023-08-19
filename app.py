@@ -4,6 +4,7 @@ import win32gui
 from pynput import keyboard, mouse
 from PIL import ImageGrab
 import os
+import threading
 
 from typing import List, Dict
 
@@ -61,6 +62,7 @@ class WindowCapture:
     def __init__(self, hwnd) -> None:
         self.hwnd = hwnd
         self.index = 0
+        self.lock = threading.Lock()
         self.directory_check()
 
     def initialize(self, hwnd):
@@ -76,8 +78,10 @@ class WindowCapture:
         foreground_window_hwnd = win32gui.GetForegroundWindow()
         if foreground_window_hwnd == self.hwnd or -1 == self.hwnd:
             image = ImageGrab.grab()
+            self.lock.acquire()
             image.save(f"./images/{self.index}.jpg", format='JPEG', subsampling=0, quality=100)
             self.index += 1
+            self.lock.release()
 
 class KeyboardHooker:
     def __init__(self, cap: WindowCapture) -> None:
