@@ -23,3 +23,6 @@ FFMPEG
 - Caputre specific region
 - FFMPEG Progress bar
 - UI Frame (better ui)
+
+## Fix
+- Locking
